@@ -1610,6 +1610,69 @@ HWY_API Vec128<uint8_t, N> U8FromU32(const Vec128<uint32_t, N> v) {
   return DemoteTo(Simd<uint8_t, N, 0>(), v);
 }
 
+// ------------------------------ Truncations
+
+template <size_t N>
+HWY_API Vec128<uint8_t, N> TruncateTo(Simd<uint8_t, N, 0> /* tag */,
+                                      const Vec128<uint64_t, N> v) {
+  Vec128<uint8_t, N> ret;
+  // TODO(eustas): do we need to fill tail (at least with zeroes)?
+  for (size_t i = 0; i < N; ++i) {
+    ret[i] = static_cast<uint8_t>(v.raw[i]);
+  }
+  return ret;
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, N> TruncateTo(Simd<uint16_t, N, 0> /* tag */,
+                                       const Vec128<uint64_t, N> v) {
+  Vec128<uint16_t, N> ret;
+  for (size_t i = 0; i < N; ++i) {
+    ret[i] = static_cast<uint16_t>(v.raw[i]);
+  }
+  return ret;
+}
+
+template <size_t N>
+HWY_API Vec128<uint32_t, N> TruncateTo(Simd<uint32_t, N, 0> /* tag */,
+                                       const Vec128<uint64_t, N> v) {
+  Vec128<uint32_t, N> ret;
+  for (size_t i = 0; i < N; ++i) {
+    ret[i] = static_cast<uint32_t>(v.raw[i]);
+  }
+  return ret;
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, N> TruncateTo(Simd<uint8_t, N, 0> /* tag */,
+                                      const Vec128<uint32_t, N> v) {
+  Vec128<uint8_t, N> ret;
+  for (size_t i = 0; i < N; ++i) {
+    ret[i] = static_cast<uint8_t>(v.raw[i]);
+  }
+  return ret;
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, N> TruncateTo(Simd<uint16_t, N, 0> /* tag */,
+                                       const Vec128<uint32_t, N> v) {
+  Vec128<uint16_t, N> ret;
+  for (size_t i = 0; i < N; ++i) {
+    ret[i] = static_cast<uint16_t>(v.raw[i]);
+  }
+  return ret;
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, N> TruncateTo(Simd<uint8_t, N, 0> /* tag */,
+                                      const Vec128<uint16_t, N> v) {
+  Vec128<uint8_t, N> ret;
+  for (size_t i = 0; i < N; ++i) {
+    ret[i] = static_cast<uint8_t>(v.raw[i]);
+  }
+  return ret;
+}
+
 // ================================================== COMBINE
 
 template <typename T, size_t N>

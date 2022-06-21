@@ -930,6 +930,10 @@ All functions except `Stream` are defined in cache_control.h.
     <code>V8 **U8FromU32**(V)</code>: special-case `u32` to `u8` conversion when
     all lanes of `V` are already clamped to `[0, 256)`.
 
+*   `D`,`V`: (`u64,u32`), (`u64,u16`), (`u64,u8`), (`u32,u16`), (`u32,u8`), \
+    (`u16,u8`) <code>Vec&lt;D&gt; **TruncateTo**(D, V v)</code>: returns `v[i]`
+    after packing with dropping the high bits.
+
 `DemoteTo` and float-to-int `ConvertTo` return the closest representable value
 if the input exceeds the destination range.
 

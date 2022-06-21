@@ -3296,6 +3296,54 @@ HWY_API Vec128<uint8_t, N> U8FromU32(const Vec128<uint32_t, N> v) {
       wasm_u8x16_narrow_i16x8(intermediate, intermediate)};
 }
 
+// ------------------------------ Truncations
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 8 * N> TruncateTo(Simd<uint8_t, 8 * N, 0> d,
+                                          const Vec128<uint64_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  const auto v2 = ConcatEven(d, v1, v1);
+  const auto v4 = ConcatEven(d, v2, v2);
+  return ConcatEven(d, v4, v4);
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, 4 * N> TruncateTo(Simd<uint16_t, 4 * N, 0> d,
+                                       const Vec128<uint64_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  const auto v2 = ConcatEven(d, v1, v1);
+  return ConcatEven(d, v2, v2);
+}
+
+template <size_t N>
+HWY_API Vec128<uint32_t, 2 * N> TruncateTo(Simd<uint32_t, 2 * N, 0> d,
+                                       const Vec128<uint64_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 4 * N> TruncateTo(Simd<uint8_t, 4 * N, 0> d,
+                                      const Vec128<uint32_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  const auto v2 = ConcatEven(d, v1, v1);
+  return ConcatEven(d, v2, v2);
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, 2 * N> TruncateTo(Simd<uint16_t, 2 * N, 0> d,
+                                       const Vec128<uint32_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 2 * N> TruncateTo(Simd<uint8_t, 2 * N, 0> d,
+                                      const Vec128<uint16_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
 // ------------------------------ Convert i32 <=> f32 (Round)
 
 template <size_t N>

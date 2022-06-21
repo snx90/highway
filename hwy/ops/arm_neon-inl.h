@@ -982,6 +982,13 @@ HWY_INLINE Vec128<bfloat16_t, N> BitCastFromByte(
   return Vec128<bfloat16_t, N>(BitCastFromByte(Simd<uint16_t, N, 0>(), v).raw);
 }
 
+HWY_INLINE uint8x8x2_t Wrap(uint8x16_t src) {
+  uint8x8x2_t dst;
+  dst.val[0] = vget_low_u8(src);
+  dst.val[1] = vget_high_u8(src);
+  return dst;
+}
+
 }  // namespace detail
 
 template <typename T, size_t N, typename FromT>
@@ -3242,6 +3249,54 @@ HWY_API Vec128<uint8_t, N> U8FromU32(const Vec128<uint32_t, N> v) {
   return Vec128<uint8_t, N>(vuzp1_u8(w, w));
 }
 
+// ------------------------------ Truncations
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 8 * N> TruncateTo(Simd<uint8_t, 8 * N, 0> d,
+                                          const Vec128<uint64_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  const auto v2 = ConcatEven(d, v1, v1);
+  const auto v4 = ConcatEven(d, v2, v2);
+  return ConcatEven(d, v4, v4);
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, 4 * N> TruncateTo(Simd<uint16_t, 4 * N, 0> d,
+                                       const Vec128<uint64_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  const auto v2 = ConcatEven(d, v1, v1);
+  return ConcatEven(d, v2, v2);
+}
+
+template <size_t N>
+HWY_API Vec128<uint32_t, 2 * N> TruncateTo(Simd<uint32_t, 2 * N, 0> d,
+                                       const Vec128<uint64_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 4 * N> TruncateTo(Simd<uint8_t, 4 * N, 0> d,
+                                      const Vec128<uint32_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  const auto v2 = ConcatEven(d, v1, v1);
+  return ConcatEven(d, v2, v2);
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, 2 * N> TruncateTo(Simd<uint16_t, 2 * N, 0> d,
+                                       const Vec128<uint32_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 2 * N> TruncateTo(Simd<uint8_t, 2 * N, 0> d,
+                                      const Vec128<uint16_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
 // In the following DemoteTo functions, |b| is purposely undefined.
 // The value a needs to be extended to 128 bits so that vqmovn can be
 // used and |b| is undefined so that no extra overhead is introduced.
@@ -4669,10 +4724,7 @@ HWY_API Vec128<TI> TableLookupBytes(const Vec128<T> bytes,
   return BitCast(d, Vec128<uint8_t>(vqtbl1q_u8(BitCast(d8, bytes).raw,
                                                BitCast(d8, from).raw)));
 #else
-  uint8x16_t table0 = BitCast(d8, bytes).raw;
-  uint8x8x2_t table;
-  table.val[0] = vget_low_u8(table0);
-  table.val[1] = vget_high_u8(table0);
+  uint8x8x2_t table = detail::Wrap(BitCast(d8, bytes).raw);
   uint8x16_t idx = BitCast(d8, from).raw;
   uint8x8_t low = vtbl2_u8(table, vget_low_u8(idx));
   uint8x8_t hi = vtbl2_u8(table, vget_high_u8(idx));

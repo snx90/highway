@@ -335,8 +335,6 @@ struct TestConvertU8 {
   template <typename T, class D>
   HWY_NOINLINE void operator()(T /*unused*/, const D du32) {
     const Rebind<uint8_t, D> du8;
-    auto lanes8 = AllocateAligned<uint8_t>(Lanes(du8));
-    Store(Iota(du8, 0), du8, lanes8.get());
     const auto wrap = Set(du32, 0xFF);
     HWY_ASSERT_VEC_EQ(du8, Iota(du8, 0), U8FromU32(And(Iota(du32, 0), wrap)));
     HWY_ASSERT_VEC_EQ(du8, Iota(du8, 0x7F),
@@ -346,6 +344,50 @@ struct TestConvertU8 {
 
 HWY_NOINLINE void TestAllConvertU8() {
   ForDemoteVectors<TestConvertU8, 2>()(uint32_t());
+}
+
+struct TestTruncateTo {
+  template <typename T, class D>
+  HWY_NOINLINE void operator()(T from, const D d) {
+    const Rebind<uint8_t, D> du8;
+    const Rebind<uint16_t, D> du16;
+    const Rebind<uint32_t, D> du32;
+    const uint8_t base = 41;
+    auto src = BitCast(d, Iota(du8, base));
+    auto actual = AllocateAligned<uint8_t>(Lanes(du8));
+    size_t step = sizeof(from);
+    {
+      const size_t num_valid = Lanes(d);
+      Store(TruncateTo(du8, src), du8, actual.get());
+      for (size_t i = 0; i < num_valid; ++i) {
+        HWY_ASSERT_EQ(base + i * step, actual.get()[i]);
+      }
+    }
+    if (step > 2) {
+      const size_t num_valid = Lanes(d) / 2;
+      Store(TruncateTo(du16, src), du8, actual.get());
+      for (size_t i = 0; i < num_valid; ++i) {
+        for (size_t j = 0; j < 2; ++j) {
+          HWY_ASSERT_EQ(base + i * step + j, actual.get()[2 * i + j]);
+        }
+      }
+    }
+    if (step > 4) {
+      const size_t num_valid = Lanes(d) / 4;
+      Store(TruncateTo(du32, src), du8, actual.get());
+      for (size_t i = 0; i < num_valid; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+          HWY_ASSERT_EQ(base + i * step + j, actual.get()[4 * i + j]);
+        }
+      }
+    }
+  }
+};
+
+HWY_NOINLINE void TestAllTruncate() {
+  ForDemoteVectors<TestTruncateTo()>(uint16_t());
+  ForDemoteVectors<TestTruncateTo()>(uint32_t());
+  ForDemoteVectors<TestTruncateTo()>(uint64_t());
 }
 
 // Separate function to attempt to work around a compiler bug on ARM: when this

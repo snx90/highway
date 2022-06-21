@@ -5467,6 +5467,60 @@ HWY_API Vec128<uint8_t, N> U8FromU32(const Vec128<uint32_t, N> v) {
   return LowerHalf(LowerHalf(BitCast(d8, quad)));
 }
 
+// ------------------------------ Truncations
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 8 * N> TruncateTo(Simd<uint8_t, 8 * N, 0> d,
+                                          const Vec128<uint64_t, N> v) {
+  const Simd<uint32_t, N, 0> d32;
+  alignas(16) static constexpr uint32_t kMap[4] = {
+      0x08000800u, 0x08000800u, 0x08000800u, 0x08000800u};
+  return BitCast(d, TableLookupBytes(v, Load(d32, kMap)));
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, 4 * N> TruncateTo(Simd<uint16_t, 4 * N, 0> d,
+                                       const Vec128<uint64_t, N> v) {
+  const Simd<uint32_t, N, 0> d32;
+  alignas(16) static constexpr uint32_t kMap[4] = {
+      0x09080100u, 0x09080100u, 0x09080100u, 0x09080100u};
+  return BitCast(d, TableLookupBytes(v, Load(d32, kMap)));
+}
+
+template <size_t N>
+HWY_API Vec128<uint32_t, 2 * N> TruncateTo(Full128<uint32_t> /* tag */,
+                                           const Vec128<uint64_t, N> v) {
+  return Vec128<uint32_t, 2 * N>{_mm_shuffle_epi32(v.raw, 0x88)};
+}
+
+HWY_API Vec128<uint32_t, 2> TruncateTo(Simd<uint32_t, 2, 0> /* tag */,
+                                           const Vec128<uint64_t, 1> v) {
+  return Vec128<uint32_t, 2>{_mm_shuffle_epi32(v.raw, 0x00)};
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 4 * N> TruncateTo(Simd<uint8_t, 4 * N, 0> d,
+                                      const Vec128<uint32_t, N> v) {
+  const Simd<uint32_t, N, 0> d32;
+  alignas(16) static constexpr uint32_t kMap[4] = {
+      0x0C080400u, 0x0C080400u, 0x0C080400u, 0x0C080400u};
+  return BitCast(d, TableLookupBytes(v, Load(d32, kMap)));
+}
+
+template <size_t N>
+HWY_API Vec128<uint16_t, 2 * N> TruncateTo(Simd<uint16_t, 2 * N, 0> d,
+                                       const Vec128<uint32_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
+template <size_t N>
+HWY_API Vec128<uint8_t, 2 * N> TruncateTo(Simd<uint8_t, 2 * N, 0> d,
+                                      const Vec128<uint16_t, N> v) {
+  const auto v1 = BitCast(d, v);
+  return ConcatEven(d, v1, v1);
+}
+
 // ------------------------------ Integer <=> fp (ShiftRight, OddEven)
 
 template <size_t N>
